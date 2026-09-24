@@ -6,34 +6,55 @@ Read-only MCP server for [Torob](https://torob.com/). Search, cheapest price in 
 
 This project is not affiliated with Torob.
 
-## Run
+## Use it
 
-Node.js 18 or newer.
+The server is already running. Add this URL in your agent. No API key, no install.
 
-```bash
-npm start
+```
+https://torob-mcp-production.up.railway.app/mcp
 ```
 
-That listens on `PORT` (default 8787). MCP clients post JSON-RPC to `/mcp`. `GET /health` returns the version.
+Then ask in normal language. “Cheapest wireless headphones under 2 million toman” is enough. The agent calls Torob and answers with prices in Toman.
 
-Stdio, for a desktop client that launches a process:
+### Cursor
 
-```bash
-node src/index.js
-```
+Open Cursor Settings, then MCP, and add a new server. Or put this in `~/.cursor/mcp.json` (all projects) or `.cursor/mcp.json` (this project only):
 
 ```json
 {
   "mcpServers": {
     "torob": {
-      "command": "node",
-      "args": ["src/index.js"]
+      "url": "https://torob-mcp-production.up.railway.app/mcp"
     }
   }
 }
 ```
 
-Set the working directory to this repo.
+Save and reload. Torob should show up under MCP tools.
+
+### Claude
+
+On claude.ai or Claude Desktop: Customize, then Connectors, then Add custom connector. Paste the URL above. Leave OAuth empty. This server has no login.
+
+In Claude Code:
+
+```bash
+claude mcp add --transport http torob https://torob-mcp-production.up.railway.app/mcp
+```
+
+On a Team or Enterprise plan, an owner adds the connector first. Each person then connects it from Customize.
+
+### ChatGPT
+
+ChatGPT only accepts a public HTTPS address, which this is.
+
+Open Settings, then Apps (or Connectors). Turn on Developer mode under Advanced. Create a connector, name it Torob, paste the URL, and choose no authentication. In a new chat, enable that connector before you ask.
+
+The menu has moved around. If you do not see Developer mode under Connectors, look under Settings, then Security.
+
+### Other agents
+
+Any client that takes a remote MCP URL can use the same address. Pick Streamable HTTP if it asks for a transport. There is no token to paste.
 
 ## Tools
 
