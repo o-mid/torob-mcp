@@ -1,6 +1,6 @@
 # Torob MCP
 
-![Torob MCP](assets/torob-mcp-banner.png)
+![Torob MCP](assets/banner.png)
 
 Read-only MCP server for [Torob](https://torob.com/). Search, cheapest price in Toman, online shops, in-store stock, specs, variants, and the price chart. No API key. Nothing is written back to Torob.
 
@@ -66,7 +66,7 @@ Torob does not publish buyer reviews (score, date, likes, pros and cons) or a pr
 
 ## How fresh the data is
 
-![How a question reaches Torob](assets/torob-mcp-how-it-works.png)
+![How a question reaches Torob](assets/how-it-works.png)
 
 Nothing is stored as a product database. Each call reads Torob's public API. A response is kept in memory for 3 minutes so a follow-up question does not hit Torob again immediately. After that, the next call reads Torob again. Prices, stock, and shop lists change on Torob's side whenever they change there.
 
