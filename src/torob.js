@@ -148,6 +148,7 @@ export async function searchProducts(opts) {
     spellcheck: data.spellcheck?.is_spellchecked
       ? { from: data.spellcheck.initial_query, to: data.spellcheck.corrected_query }
       : null,
+    ...(opts.query ? matchQuery(opts.query, items) : { low_confidence: false, unmatched_terms: [] }),
   };
 }
 
@@ -192,6 +193,7 @@ export function keySpecs(detail) {
 }
 
 export function sellerRow(s) {
+  const complaints = s.score_info?.complaints_info?.summary;
   return {
     shop_id: s.shop_id ?? null,
     shop: s.shop_name ?? null,
@@ -201,9 +203,46 @@ export function sellerRow(s) {
     price_unreliable: s.is_price_unreliable === true,
     score: s.score_info?.score ?? s.shop_score ?? null,
     score_text: s.score_info?.score_text ?? null,
+    buyer_notes: Array.isArray(complaints) ? complaints.slice(0, 4) : [],
     warranty_listed: s.guarantee_info?.status === "enabled",
     last_price_change: s.last_price_change_date || null,
     is_ad: s.is_adv === true,
     listing_title: s.name1 || null,
   };
+}
+
+export function htmlToText(html) {
+  return String(html ?? "")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<\/h[1-6]>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+function fold(s) {
+  return faToEn(String(s))
+    .replace(/[\u200c\u200d]/g, "")
+    .replace(/[يى]/g, "ی")
+    .replace(/ك/g, "ک")
+    .toLowerCase();
+}
+
+export function matchQuery(query, items) {
+  const terms = fold(query)
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter((t) => t.length > 1);
+  if (!terms.length || !items.length) return { low_confidence: false, unmatched_terms: [] };
+  const blob = items.map((it) => fold(`${it.title ?? ""} ${it.title_en ?? ""}`)).join("\n");
+  const unmatched = terms.filter((t) => !blob.includes(t));
+  return { low_confidence: unmatched.length === terms.length, unmatched_terms: unmatched };
 }

@@ -2,6 +2,7 @@ import {
   assertId,
   card,
   clamp,
+  htmlToText,
   keySpecs,
   productDetails,
   productUrl,
@@ -82,6 +83,17 @@ export const tools = [
     annotations: READONLY,
   },
   {
+    name: "product_guide",
+    description:
+      "Torob's written product guide (نظرات کاربران و توضیحات تخصصی on the page). Plain text, not star ratings. Torob does not publish buyer reviews with dates, likes, or pros and cons.",
+    inputSchema: {
+      type: "object",
+      properties: { id: { type: "string" } },
+      required: ["id"],
+    },
+    annotations: READONLY,
+  },
+  {
     name: "product_details",
     description:
       "One base product: cheapest and highest listed price in Toman, shop count, category, key specs, and the Torob page URL. Seller rows are a separate tool.",
@@ -99,7 +111,7 @@ export const tools = [
   {
     name: "product_sellers",
     description:
-      "Shops listing this product, cheapest reliable prices first. Each row has shop name, city, price in Toman, Torob shop score, and whether Torob marked the price unreliable.",
+      "Shops listing this product, cheapest reliable prices first. Each row has shop name, city, price in Toman, Torob shop score, a short note on recent orders and follow-ups, and whether Torob marked the price unreliable.",
     inputSchema: {
       type: "object",
       properties: {
@@ -252,6 +264,8 @@ async function dispatch(name, args) {
       return searchProducts({ ...args, query: undefined });
     case "search_filters":
       return filters(args);
+    case "product_guide":
+      return guide(args);
     case "product_details":
       return details(args);
     case "product_sellers":
@@ -316,6 +330,22 @@ function flattenSpecs(detail, keyword) {
       items: g.items.filter((it) => `${it.name} ${it.value}`.toLowerCase().includes(q)),
     }))
     .filter((g) => g.items.length);
+}
+
+async function guide(args) {
+  const d = await productDetails(args.id);
+  const wiki = await torobGet("/v4/base-product/wiki/", { prk: args.id });
+  const text = htmlToText(wiki.data_html).slice(0, 4000);
+  return {
+    id: d.random_key,
+    title: d.name1 ?? wiki.name1 ?? null,
+    url: productUrl(d.web_client_absolute_url || wiki.web_client_absolute_url),
+    has_guide: text.length > 0,
+    text: text || null,
+    note: text
+      ? "This is Torob's product write-up, not a list of buyer reviews."
+      : "Torob has no write-up for this product. Use product_sellers buyer_notes for shop trust.",
+  };
 }
 
 async function details(args) {

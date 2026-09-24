@@ -2,7 +2,7 @@
 import { createServer } from "node:http";
 import { callTool, tools } from "./server.js";
 
-const SERVER = { name: "torob-mcp", version: "0.1.0" };
+const SERVER = { name: "torob-mcp", version: "0.2.0" };
 
 function rpcResult(id, result) {
   return { jsonrpc: "2.0", id, result };

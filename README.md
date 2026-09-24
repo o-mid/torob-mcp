@@ -42,7 +42,8 @@ Set the working directory to this repo.
 | `browse_category` | One category, plus child categories |
 | `search_filters` | Category ids and the price span for a query |
 | `product_details` | Price range, category, brand, key specs |
-| `product_sellers` | Online shops, city, score, unreliable-price flag, min/median/max |
+| `product_sellers` | Online shops, city, score, order notes, unreliable-price flag, min/median/max |
+| `product_guide` | Torob's written guide for the product. Not buyer reviews |
 | `product_stores` | Physical shops: address, hours, open/closed, price |
 | `shop_profile` | Shop name, domain, city, enamad, score |
 | `product_variants` | Storage / RAM / region siblings and their prices |
@@ -57,6 +58,16 @@ Product ids are UUIDs (`random_key`). The price on a card is the cheapest shop T
 
 Price bounds apply to the page that was fetched. Budget questions belong on `find_best_value`.
 
+Search sets `low_confidence` when none of the returned titles contain the query words, and lists those words in `unmatched_terms`.
+
+Torob does not publish buyer reviews (score, date, likes, pros and cons) or a product Q&A. `product_guide` is the write-up on the product page. Shop trust is `buyer_notes` on `product_sellers`: recent order volume and how many buyers followed up an order.
+
+## How fresh the data is
+
+Nothing is stored as a product database. Each call reads Torob's public API. A response is kept in memory for 3 minutes so a follow-up question does not hit Torob again immediately. After that, the next call reads Torob again. Prices, stock, and shop lists change on Torob's side whenever they change there.
+
+GitHub Actions runs `scripts/verify.mjs` against the live endpoint every hour. A red run means the endpoint or Torob's response shape broke. That is the signal to update the server. The action does not refresh prices on a schedule. Prices refresh when someone asks.
+
 ## Check
 
 ```bash
@@ -64,4 +75,4 @@ npm start
 node scripts/verify.mjs
 ```
 
-Upstream is Torob's public web API (`api.torob.com`). It is undocumented and can change. Requests are spaced 400ms apart, with a short in-memory cache.
+Examples: [examples/sample-calls.md](examples/sample-calls.md).
