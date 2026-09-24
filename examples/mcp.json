@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "torob": {
+      "command": "node",
+      "args": ["src/index.js"]
+    }
+  }
+}
