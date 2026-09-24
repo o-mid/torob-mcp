@@ -334,12 +334,18 @@ function flattenSpecs(detail, keyword) {
 
 async function guide(args) {
   const d = await productDetails(args.id);
-  const wiki = await torobGet("/v4/base-product/wiki/", { prk: args.id });
-  const text = htmlToText(wiki.data_html).slice(0, 4000);
+  let text = "";
+  try {
+    const wiki = await torobGet("/v4/base-product/wiki/", { prk: args.id });
+    text = htmlToText(wiki.data_html).slice(0, 4000);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (!/404|ویکی/.test(msg)) throw err;
+  }
   return {
     id: d.random_key,
-    title: d.name1 ?? wiki.name1 ?? null,
-    url: productUrl(d.web_client_absolute_url || wiki.web_client_absolute_url),
+    title: d.name1 ?? null,
+    url: productUrl(d.web_client_absolute_url),
     has_guide: text.length > 0,
     text: text || null,
     note: text
